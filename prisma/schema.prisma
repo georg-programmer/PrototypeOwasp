@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               Int            @id @default(autoincrement())
+  email            String         @unique
+  passwordHash     String
+  role             String         @default("user")
+  failedLoginCount Int            @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime       @default(now())
+  sessions         Session[]
+  securityLogs     SecurityLog[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model SecurityLog {
+  id        Int      @id @default(autoincrement())
+  eventType String
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  ip        String?
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+generator zod {
+  provider = "zod-prisma-types"
+  output   = "../app/generated/zod"
+}

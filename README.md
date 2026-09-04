@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OWASP Top 10 Prototyp
 
-## Getting Started
+Maturaprojekt-Prototyp der die OWASP Top 10 Schwachstellen im Backend abdeckt.
 
-First, run the development server:
+## Setup
+
+```bash
+npm install
+```
+
+### Umgebungsvariablen
+
+Erstelle eine `.env`-Datei im Root:
+
+```
+DATABASE_URL="postgresql://USER:PASSWORT@HOST/DBNAME?sslmode=no-verify"
+JWT_SECRET="dein-geheimer-schlüssel"
+```
+
+### Datenbank
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+### Starten
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Projektstruktur
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+lib/                         Hilfsfunktionen
+├── prisma.ts                DB-Verbindung (Singleton)
+├── auth.ts                  JWT, bcrypt, Cookies
+├── rate-limit.ts            Rate Limiting pro IP
+├── security-log.ts          Security Events loggen
+└── ssrf-guard.ts            URL-Allowlist (SSRF-Schutz)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+app/services/                Geschäftslogik
+├── auth.service.ts          Register, Login, Logout, Session
+├── admin.service.ts         Security Logs (nur Admins)
+└── proxy.service.ts         SSRF-geschützter URL-Proxy
 
-## Learn More
+app/api/                     API-Endpunkte
+├── auth/register/route.ts   POST — Registrierung
+├── auth/login/route.ts      POST — Login
+├── auth/logout/route.ts     POST — Logout
+├── auth/session/route.ts    GET  — Aktuelle Session
+├── admin/route.ts           GET  — Security Logs (Admin)
+└── proxy/route.ts           POST — Externe URL fetchen
 
-To learn more about Next.js, take a look at the following resources:
+prisma/
+├── schema.prisma            DB-Schema (User, Session, SecurityLog)
+└── migrations/              SQL-Migrationen
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## OWASP Top 10 Abdeckung
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| # | Schwachstelle | Umsetzung |
+|---|---|---|
+| A1 | Broken Access Control | Rollen-Check serverseitig aus signiertem JWT |
+| A2 | Cryptographic Failures | bcrypt (12 Runden), HttpOnly Cookies |
+| A3 | Injection | Zod-Validierung + Prisma parameterisierte Queries |
+| A4 | Insecure Design | Rate Limiting, Account Lockout nach 5 Fehlversuchen |
+| A5 | Security Misconfiguration | Security Headers (CSP, HSTS, X-Frame-Options) |
+| A6 | Outdated Components | `npm audit` |
+| A7 | Auth Failures | JWT-Signaturprüfung, sichere Session-Verwaltung |
+| A8 | Supply Chain | `npm ci` in Production |
+| A9 | Logging & Monitoring | Alle Security Events in SecurityLog-Tabelle |
+| A10 | SSRF | URL-Allowlist, nur HTTPS, interne IPs blockiert |
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Next.js 16** (App Router)
+- **PostgreSQL** auf Render (Frankfurt)
+- **Prisma 7** als ORM
+- **bcryptjs** / **jose** / **zod** für Sicherheit
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Siehe [TECHSTACK.md](./TECHSTACK.md) für Details.
