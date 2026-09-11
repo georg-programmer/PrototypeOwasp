@@ -2,33 +2,7 @@
 
 Maturaprojekt-Prototyp der die OWASP Top 10 Schwachstellen im Backend abdeckt.
 
-## Setup
 
-```bash
-npm install
-```
-
-### Umgebungsvariablen
-
-Erstelle eine `.env`-Datei im Root:
-
-```
-DATABASE_URL="postgresql://USER:PASSWORT@HOST/DBNAME?sslmode=no-verify"
-JWT_SECRET="dein-geheimer-schlüssel"
-```
-
-### Datenbank
-
-```bash
-npx prisma migrate dev
-npx prisma generate
-```
-
-### Starten
-
-```bash
-npm run dev
-```
 
 ## Projektstruktur
 
